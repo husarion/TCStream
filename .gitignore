@@ -7,5 +7,5 @@ Makefile
 *.jar
 *.class
 *.o
-.log
+*.log
 .idea/
