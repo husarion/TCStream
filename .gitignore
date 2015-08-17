@@ -1,0 +1,11 @@
+CMakeCache.txt
+CMakeFiles/
+Makefile
+*.cmake
+*.a
+*.so
+*.jar
+*.class
+*.o
+.log
+.idea/
