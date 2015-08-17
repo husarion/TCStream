@@ -13,3 +13,7 @@ Assumptions:
   * P2P link
   * Sent bytes always arrive in order
   * Operating system available (mutexes, threads)
+
+Available ports:
+  * Linux
+  * [RoboCORE](robocore.io)
