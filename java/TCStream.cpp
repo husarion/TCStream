@@ -132,7 +132,7 @@ JNIEXPORT void JNICALL Java_TCStream_run(JNIEnv* env, jobject obj)
 		std::cout << "Unable to get method2 ref" << std::endl;
 	}
 
-	tcs.allocateBuffers(5);
+	tcs.allocateBuffers(50);
 	tcs.allocateQueue(1000);
 
 	srand(time(0));
