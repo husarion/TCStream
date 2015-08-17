@@ -1,0 +1,3 @@
+[submodule "examples/kdutils"]
+	path = examples/kdutils
+	url = git@github.com:KrystianD/kdutils.git
