@@ -9,3 +9,6 @@ Makefile
 *.o
 *.log
 .idea/
+*.elf
+*.hex
+*.bin
