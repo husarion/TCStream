@@ -9,6 +9,7 @@ uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 
 #define PACKET_TYPE_DATA 0
 #define PACKET_TYPE_ACK  1
+#define PACKET_TYPE_EOP  2 // end of packet
 
 #ifndef LOG
 #define LOG(x,...)
@@ -30,8 +31,8 @@ void TCStream::run()
 	for (;;)
 	{
 		char inData[10];
-		int rd = stream.read(inData, sizeof(inData), 200);
-		// LOG("new data: %d", rd);
+		int rd = stream.read(inData, sizeof(inData), 20);
+		LOG("new data: %d", rd);
 
 		if (rd > 0)
 			recvBytes += rd;
@@ -39,6 +40,7 @@ void TCStream::run()
 		for (int i = 0; i < rd; i++)
 		{
 			uint8_t b = inData[i];
+			LOG("new data (%d): 0x%02x %d", i, b, b);
 
 			magicQueue[0] = magicQueue[1];
 			magicQueue[1] = magicQueue[2];
@@ -60,7 +62,7 @@ void TCStream::run()
 				{
 					state = 1;
 					startTime = TCUtils::getTicks();
-					// LOG("start %d", startTime);
+					LOG("magic match start %d", startTime);
 					idx = 0;
 				}
 				break;
@@ -99,7 +101,7 @@ void TCStream::run()
 			}
 		}
 
-		if (state != 0 && TCUtils::getTicks() - startTime >= 20)
+		if (state != 0 && TCUtils::getTicks() - startTime >= 150)
 		{
 			state = 0;
 			LOG("lost packet");
@@ -146,24 +148,6 @@ void TCStream::processPacket()
 
 				sendAck();
 			}
-			// End Of Packet was received (byteIdx = 0xffff)
-			else if (recvHeader.byteIdx == 0xffff)
-			{
-				LOG("whole packet received %d", lastReceivedByteNum);
-
-				if (recvQueue->put(TQueueItem(2, 0), 10))
-				{
-					recvPackets++;
-					lastReceivedPacketByteIdx = recvHeader.byteIdx;
-					sendAck();
-				}
-				else
-				{
-					droppedEndPacketMarkers++;
-				}
-
-				// lastReceivedPacketId = 0;
-			}
 			// next packet part was received
 			else
 			{
@@ -173,6 +157,7 @@ void TCStream::processPacket()
 				{
 					recvPackets++;
 					lastReceivedPacketByteIdx = recvHeader.byteIdx;
+					lastReceivedPacketType = PACKET_TYPE_DATA;
 					sendAck();
 				}
 				else
@@ -192,6 +177,7 @@ void TCStream::processPacket()
 				{
 					lastReceivedPacketId = recvHeader.packetId;
 					lastReceivedPacketByteIdx = 0;
+					lastReceivedPacketType = PACKET_TYPE_DATA;
 					lastReceivedByteNum = -1;
 
 					if (processIncomingBytes())
@@ -227,6 +213,59 @@ void TCStream::processPacket()
 		writeMutex.unlock();
 		writeCondVar.notify_one();
 		LOG("ack proceed");
+	}
+	else if (recvHeader.type == PACKET_TYPE_EOP)
+	{
+		LOG("got EOP (%d:%d)", recvHeader.packetId, recvHeader.byteIdx);
+		if (recvHeader.packetId == lastReceivedPacketId)
+		{
+			// sender didn't receive ACK and retransmitted packet
+			if (lastReceivedPacketType == PACKET_TYPE_EOP)
+			{
+				LOG("repeated EOP packet, dropping, new packet (%d:%d) last packet (%d:%d)",
+				    recvHeader.packetId, recvHeader.byteIdx, lastReceivedPacketId, lastReceivedPacketByteIdx);
+
+				repeatedPackets++;
+
+				sendAck();
+			}
+			// End Of Packet was received
+			else
+			{
+				int received = lastReceivedByteNum + 1;
+				int toReceive = recvHeader.byteIdx; // byteIdx = payload bytes sent by sender
+				LOG("whole packet, received %d, to receive %d", received, toReceive);
+
+				if (received == toReceive)
+				{
+					if (recvQueue->put(TQueueItem(2, 0), 10))
+					{
+						recvPackets++;
+						lastReceivedPacketByteIdx = recvHeader.byteIdx;
+						lastReceivedPacketType = PACKET_TYPE_EOP;
+						sendAck();
+					}
+					else
+					{
+						droppedEndPacketMarkers++;
+					}
+				}
+				// we receive EOP but we didn't receive all DATA packets, we can only simply ignore whole packet
+				else
+				{
+					LOG("EOP without DATA, ignoring");
+				}
+
+				// lastReceivedPacketId = 0;
+			}
+		}
+		// different packet
+		else
+		{
+			// packet with different id was received but it is End Of Packet, as we cannot do anything interesting
+			// in this situation, it is simple dropped
+			LOG("unknown EOP %d:%d\r\n", recvHeader.packetId, recvHeader.byteIdx);
+		}
 	}
 }
 bool TCStream::processIncomingBytes()
@@ -297,7 +336,7 @@ int TCStream::endPacket()
 {
 	if (outIdx > 0)
 	{
-		LOG("sending remaining in buffer");
+		LOG("sending remaining in buffer %d");
 		int res = flushPacket();
 		if (res < 0)
 		{
@@ -308,9 +347,9 @@ int TCStream::endPacket()
 
 	LOG("sending EOP marker");
 	TPacketHeader eopHeader;
-	eopHeader.type = 0;
+	eopHeader.type = PACKET_TYPE_EOP;
 	eopHeader.packetId = sendHeader.packetId;
-	eopHeader.byteIdx = 0xffff;
+	eopHeader.byteIdx = sendHeader.byteIdx; // bytesIdx = total length
 	eopHeader.crc = 0;
 	eopHeader.length = 0;
 	int res = sendPacket(eopHeader, 0, true);
@@ -354,7 +393,7 @@ int TCStream::sendPacket(TPacketHeader& header, const void* data, bool waitForAc
 
 	bool sendok = false;
 	uint32_t t = TCUtils::getTicks();
-	while (!sendok && TCUtils::getTicks() - t < 10000)
+	while (!sendok && TCUtils::getTicks() - t < 1000)
 	{
 		stream.write(magic, sizeof(magic), 0);
 		stream.write(&header, sizeof(header), 0);
@@ -370,7 +409,7 @@ int TCStream::sendPacket(TPacketHeader& header, const void* data, bool waitForAc
 		writeMutex.lock();
 		while (!timedout && (ackedPacketId != header.packetId || ackedPacketByteIdx != header.byteIdx))
 		{
-			if (!writeCondVar.wait(writeMutex, 100))
+			if (!writeCondVar.wait(writeMutex, 200))
 				timedout = true;
 		}
 		writeMutex.unlock();
@@ -399,7 +438,7 @@ int TCStream::sendPacket(TPacketHeader& header, const void* data, bool waitForAc
 int TCStream::read(void* data, int length, int timeout)
 {
 	assert(timeout >= 0);
-	LOG("read()");
+	LOG("read(%d)", length);
 	readMutex.lock();
 	uint8_t *_data = (uint8_t*)data;
 	for (int i = 0; i < length; i++)
@@ -465,6 +504,7 @@ void TCStream::sendAck()
 	packet.byteIdx = lastReceivedPacketByteIdx;
 	packet.length = 0;
 
+	LOG("send ack");
 	sendPacket(packet, 0, false);
 }
 

@@ -29,6 +29,8 @@ struct TQueueItem
 };
 #pragma pack()
 
+#define PACKET_HEADER_SIZE (4 + sizeof(TPacketHeader))
+
 class ITCDeviceStream
 {
 public:
@@ -75,8 +77,8 @@ public:
 	void allocateBuffers(int packetSize)
 	{
 		this->packetSize = packetSize;
-		inPacketData = (uint8_t*)TCUtils::malloc(packetSize);
-		outPacketData = (uint8_t*)TCUtils::malloc(packetSize);
+		inPacketData = (uint8_t*)TCUtils::malloc(packetSize + PACKET_HEADER_SIZE);
+		outPacketData = (uint8_t*)TCUtils::malloc(packetSize + PACKET_HEADER_SIZE);
 	}
 
 	void setBuffers(int packetSize, uint8_t* inPacketData, uint8_t* outPacketData)
@@ -108,6 +110,7 @@ public:
 	uint16_t lastReceivedPacketId;
 	uint16_t lastReceivedPacketByteIdx;
 	int lastReceivedByteNum;
+	uint8_t lastReceivedPacketType;
 
 	void checkPacket();
 	void processPacket();
