@@ -124,8 +124,9 @@ public:
 	int outIdx;
 	uint16_t ackedPacketId, ackedPacketByteIdx;
 
-	int flushPacket();
-	int sendPacket(TPacketHeader& header, const void* data, bool waitForAck);
+	int flushPacket(bool lastPacket);
+	int sendPacket(TPacketHeader& header);
+	int sendDataPacket(TPacketHeader& header);
 
 	// stats
 	int sentBytes, sentPayloadBytes, sentPackets;
