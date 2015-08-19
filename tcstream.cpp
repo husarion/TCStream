@@ -49,7 +49,8 @@ void TCStream::run()
 	uint8_t magicQueue[4];
 	uint32_t startTime;
 	uint16_t idx;
-	for (;;)
+	doStop = false;
+	while (!doStop)
 	{
 		char inData[10];
 		int rd = stream.read(inData, sizeof(inData), 20);

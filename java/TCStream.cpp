@@ -162,6 +162,12 @@ JNIEXPORT void JNICALL Java_utils_TCStream_run(JNIEnv* env, jobject obj)
 	pthread_create(&runThread, NULL, runThreadFunc, 0);
 }
 
+JNIEXPORT void JNICALL Java_utils_TCStream_stop(JNIEnv* env, jobject obj)
+{
+	tcs.stop();
+	pthread_join(runThread, 0);
+}
+
 JNIEXPORT void JNICALL Java_utils_TCStream_beginPacket(JNIEnv *, jobject)
 {
 	tcs.beginPacket();

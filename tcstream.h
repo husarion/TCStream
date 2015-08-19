@@ -89,6 +89,7 @@ public:
 	}
 
 	void run();
+	void stop() { doStop = true; }
 
 	void beginPacket();
 	int write(const void* data, int length);
@@ -99,9 +100,8 @@ public:
 	void printStats();
 
 private:
-public:
-
 	int packetSize;
+	bool doStop;
 
 	// receiving
 	uint8_t* inPacketData;

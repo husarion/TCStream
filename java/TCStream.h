@@ -17,6 +17,14 @@ JNIEXPORT void JNICALL Java_utils_TCStream_run
 
 /*
  * Class:     TCStream
+ * Method:    run
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_utils_TCStream_stop
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     TCStream
  * Method:    beginPacket
  * Signature: ()V
  */
