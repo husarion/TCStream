@@ -3,11 +3,11 @@
 #include <string.h>
 #include <jni.h>
 #include <iostream>
-#include <thread>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "../tcstream.h"
 #include "TCStream.h"
@@ -19,7 +19,7 @@ jbyteArray g_array;
 jclass g_clazz;
 uint8_t* g_data;
 
-std::thread runThread;
+pthread_t runThread;
 
 class Serial : public virtual ITCDeviceStream
 {
@@ -29,14 +29,20 @@ public:
 		JNIEnv *g_env;
 		int getEnvStat = g_vm->GetEnv((void **)&g_env, JNI_VERSION_1_6);
 
+		bool attached = false;
 		if (getEnvStat == JNI_EDETACHED)
 		{
 			// std::cout << "GetEnv: not attached" << std::endl;
-			if (g_vm->AttachCurrentThread((void **)&g_env, NULL) != 0)
+#ifdef ANDROID_NDK
+			if (g_vm->AttachCurrentThread(&g_env, NULL) != 0)
+#else
+			if (g_vm->AttachCurrentThread((void**)&g_env, NULL) != 0)
+#endif
 			{
 				std::cout << "Failed to attach" << std::endl;
 				return -1;
 			}
+			attached = true;
 		}
 		else if (getEnvStat == JNI_OK)
 		{
@@ -60,8 +66,10 @@ public:
 			g_env->ExceptionDescribe();
 		}
 
-		g_vm->DetachCurrentThread();
+		if (attached)
+			g_vm->DetachCurrentThread();
 
+		// return 0;
 		return res;
 	}
 	int write(const void* data, int length, int timeout)
@@ -69,14 +77,21 @@ public:
 		JNIEnv *g_env;
 		int getEnvStat = g_vm->GetEnv((void **)&g_env, JNI_VERSION_1_6);
 
+		bool attached = false;
 		if (getEnvStat == JNI_EDETACHED)
 		{
 			// std::cout << "GetEnv: not attached" << std::endl;
-			if (g_vm->AttachCurrentThread((void **)&g_env, NULL) != 0)
+			// if (g_vm->AttachCurrentThread((void**)&g_env, NULL) != 0)
+#ifdef ANDROID_NDK
+			if (g_vm->AttachCurrentThread(&g_env, NULL) != 0)
+#else
+			if (g_vm->AttachCurrentThread((void**)&g_env, NULL) != 0)
+#endif
 			{
 				std::cout << "Failed to attach" << std::endl;
 				return -1;
 			}
+			attached = true;
 		}
 		else if (getEnvStat == JNI_OK)
 		{
@@ -100,7 +115,8 @@ public:
 			g_env->ExceptionDescribe();
 		}
 
-		g_vm->DetachCurrentThread();
+		if (attached)
+			g_vm->DetachCurrentThread();
 
 		return res;
 	}
@@ -109,7 +125,12 @@ public:
 Serial serial;
 TCStream tcs(serial);
 
-JNIEXPORT void JNICALL Java_TCStream_run(JNIEnv* env, jobject obj)
+void* runThreadFunc(void*)
+{
+	tcs.run();
+	return 0;
+}
+JNIEXPORT void JNICALL Java_utils_TCStream_run(JNIEnv* env, jobject obj)
 {
 	env->GetJavaVM(&g_vm);
 	g_obj = env->NewGlobalRef(obj);
@@ -129,6 +150,7 @@ JNIEXPORT void JNICALL Java_TCStream_run(JNIEnv* env, jobject obj)
 	g_midWrite = env->GetMethodID(g_clazz, "onWrite", "(Ljava/nio/ByteBuffer;II)I");
 	if (g_midWrite == NULL)
 	{
+
 		std::cout << "Unable to get method2 ref" << std::endl;
 	}
 
@@ -137,28 +159,25 @@ JNIEXPORT void JNICALL Java_TCStream_run(JNIEnv* env, jobject obj)
 
 	srand(time(0));
 
-	runThread = std::thread([]()
-	{
-		tcs.run();
-	});
+	pthread_create(&runThread, NULL, runThreadFunc, 0);
 }
 
-JNIEXPORT void JNICALL Java_TCStream_beginPacket (JNIEnv *, jobject)
+JNIEXPORT void JNICALL Java_utils_TCStream_beginPacket(JNIEnv *, jobject)
 {
 	tcs.beginPacket();
 }
-JNIEXPORT jint JNICALL Java_TCStream_write(JNIEnv* env, jobject obj, jobject buffer, jint length)
+JNIEXPORT jint JNICALL Java_utils_TCStream_write(JNIEnv* env, jobject obj, jobject buffer, jint length)
 {
 	void* data = env->GetDirectBufferAddress(buffer);
 	int res = tcs.write(data, length);
 	return res;
 }
-JNIEXPORT void JNICALL Java_TCStream_endPacket (JNIEnv *, jobject)
+JNIEXPORT void JNICALL Java_utils_TCStream_endPacket(JNIEnv *, jobject)
 {
 	tcs.endPacket();
 }
 
-JNIEXPORT jint JNICALL Java_TCStream_read(JNIEnv* env, jobject obj, jobject buffer, jint length, jint timeout)
+JNIEXPORT jint JNICALL Java_utils_TCStream_read(JNIEnv* env, jobject obj, jobject buffer, jint length, jint timeout)
 {
 	void* data = env->GetDirectBufferAddress(buffer);
 	int res = tcs.read(data, length, timeout);

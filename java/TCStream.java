@@ -1,13 +1,4 @@
-import java.lang.Byte;
-import java.lang.System;
-import java.net.SocketTimeoutException;
 import java.util.logging.Logger;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 
 public class TCStream
 {
@@ -31,11 +22,13 @@ public class TCStream
   {
   }
 
+  // for native use
   public int onRead(java.nio.ByteBuffer data, int length, int timeout)
   {
     return stream.read(data, length, timeout);
   }
 
+  // for native use
   public int onWrite(java.nio.ByteBuffer data, int length, int timeout)
   {
     return stream.write(data, length, timeout);

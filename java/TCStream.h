@@ -12,7 +12,7 @@ extern "C" {
  * Method:    run
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_TCStream_run
+JNIEXPORT void JNICALL Java_utils_TCStream_run
   (JNIEnv *, jobject);
 
 /*
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_TCStream_run
  * Method:    beginPacket
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_TCStream_beginPacket
+JNIEXPORT void JNICALL Java_utils_TCStream_beginPacket
   (JNIEnv *, jobject);
 
 /*
@@ -28,7 +28,7 @@ JNIEXPORT void JNICALL Java_TCStream_beginPacket
  * Method:    write
  * Signature: (Ljava/nio/ByteBuffer;I)I
  */
-JNIEXPORT jint JNICALL Java_TCStream_write
+JNIEXPORT jint JNICALL Java_utils_TCStream_write
   (JNIEnv *, jobject, jobject, jint);
 
 /*
@@ -36,7 +36,7 @@ JNIEXPORT jint JNICALL Java_TCStream_write
  * Method:    endPacket
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_TCStream_endPacket
+JNIEXPORT void JNICALL Java_utils_TCStream_endPacket
   (JNIEnv *, jobject);
 
 /*
@@ -44,7 +44,7 @@ JNIEXPORT void JNICALL Java_TCStream_endPacket
  * Method:    read
  * Signature: (Ljava/nio/ByteBuffer;II)I
  */
-JNIEXPORT jint JNICALL Java_TCStream_read
+JNIEXPORT jint JNICALL Java_utils_TCStream_read
   (JNIEnv *, jobject, jobject, jint, jint);
 
 #ifdef __cplusplus
