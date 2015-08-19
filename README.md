@@ -1,7 +1,7 @@
 # TCStream
 Connectionless, packet-based Transmission Control layer for any stream of bytes
 
-If a stream can expose read() and write() methods, this library can be used to provice reliability for data transmitted over the stream.
+If a stream can expose read() and write() methods, this library can be used to provide reliability for data transmitted over the stream.
 
 Features:
   * Connectionless
