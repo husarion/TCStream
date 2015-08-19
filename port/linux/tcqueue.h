@@ -1,10 +1,7 @@
 #ifndef __TCQUEUE_H__
 #define __TCQUEUE_H__
 
-#include <mutex>
-#include <condition_variable>
-#include <deque>
-#include <chrono>
+#include <queue>
 
 #include "tccondvar.h"
 
@@ -14,7 +11,7 @@ class TCQueue
 private:
 	TCMutex mutex;
 	TCCondVar condVarGet, condVarPut;
-	std::deque<T> queue;
+	std::queue<T> queue;
 	uint32_t size;
 public:
 	void init(int size)
@@ -34,7 +31,7 @@ public:
 			}
 		}
 
-		queue.push_back(data);
+		queue.push(data);
 
 		mutex.unlock();
 		condVarGet.notify_one();
@@ -52,8 +49,7 @@ public:
 			}
 		}
 
-		T rc(std::move(queue.front()));
-		data = rc;
+		data = queue.front();
 
 		mutex.unlock();
 		return true;
@@ -70,9 +66,8 @@ public:
 			}
 		}
 
-		T rc(std::move(queue.front()));
-		data = rc;
-		queue.pop_front();
+		data = queue.front();
+		queue.pop();
 
 		mutex.unlock();
 		condVarPut.notify_one();

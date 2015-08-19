@@ -1,24 +1,24 @@
 #ifndef __TCMUTEX_H__
 #define __TCMUTEX_H__
 
-#include <mutex>
+#include <pthread.h>
 
-class TCMutex
-{
+class TCMutex {
 public:
-	std::mutex d_mutex;
-	
+	pthread_mutex_t mutex;
+
+	TCMutex()
+	{
+		pthread_mutex_init(&mutex, NULL);
+	}
+
 	void lock()
 	{
-		d_mutex.lock();
+		pthread_mutex_lock(&mutex);
 	}
 	void unlock()
 	{
-		d_mutex.unlock();
-	}
-	bool trylock()
-	{
-		return d_mutex.try_lock();
+		pthread_mutex_unlock(&mutex);
 	}
 };
 

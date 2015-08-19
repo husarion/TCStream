@@ -13,11 +13,12 @@ uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 #define PACKET_TYPE_EOP  4 // end of packet
 #define PACKET_TYPE_ACK  8
 
-#ifndef LOG
+#if defined(LOG_FUNC) && defined(TCSTREAM_DEBUG)
+#define LOG(x,...) LOG_FUNC(x "\r\n", ##__VA_ARGS__)
+#define LOG_INFO(x,...) LOG_FUNC(x, ##__VA_ARGS__)
+#else
 #define LOG(x,...)
-#endif
-#ifndef LOGnnl
-#define LOGnnl(x,...)
+#define LOG_INFO(x,...)
 #endif
 
 #define ERROR_TIMEOUT      -1
@@ -28,16 +29,18 @@ uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 
 uint16_t crc16_update(uint16_t crc, const void* data, int len);
 
-void printHeader(const TPacketHeader& header)
+void printHeader(const char* intro, const TPacketHeader& header)
 {
-	LOGnnl("type:");
-	if (header.type & PACKET_TYPE_SOP) LOGnnl(" SOP");
-	if (header.type & PACKET_TYPE_DATA) LOGnnl(" DATA");
-	if (header.type & PACKET_TYPE_EOP) LOGnnl(" EOP");
-	if (header.type & PACKET_TYPE_ACK) LOGnnl(" ACK");
+#ifdef TCSTREAM_DEBUG
+	const char *t1 = "", *t2 = "", *t3 = "", *t4 = "";
+	if (header.type & PACKET_TYPE_SOP) t1 = " SOP";
+	if (header.type & PACKET_TYPE_DATA) t2 = " DATA";
+	if (header.type & PACKET_TYPE_EOP) t3 = " EOP";
+	if (header.type & PACKET_TYPE_ACK) t4 = " ACK";
 
-	LOG(" id: %d byteIdx: %d len: %d crc: 0x%04x",
-	    header.packetId, header.byteIdx, header.length, header.crc);
+	LOG("%s type:%s%s%s%s id: %d byteIdx: %d len: %d crc: 0x%04x", intro,
+	    t1, t2, t3, t4, header.packetId, header.byteIdx, header.length, header.crc);
+#endif
 }
 
 void TCStream::run()
@@ -88,8 +91,7 @@ void TCStream::run()
 				headerData[idx++] = b;
 				if (idx == sizeof(recvHeader))
 				{
-					LOGnnl("RECEIVED PACKET ");
-					printHeader(recvHeader);
+					printHeader("RECEIVED PACKET", recvHeader);
 					if (recvHeader.length > 0)
 					{
 						idx = 0;
@@ -440,15 +442,14 @@ int TCStream::sendDataPacket(TPacketHeader& header)
 	crc = crc16_update(crc, outPacketData + PACKET_HEADER_SIZE, header.length);
 	header.crc = crc;
 
-	LOGnnl("SENDING PACKET ");
-	printHeader(header);
+	printHeader("SENDING PACKET", header);
 
 	memcpy(outPacketData, magic, sizeof(magic));
 	memcpy(outPacketData + sizeof(magic), &header, sizeof(header));
 
 	bool sendok = false;
 	uint32_t t = TCUtils::getTicks();
-	while (!sendok && TCUtils::getTicks() - t < 10000)
+	while (!sendok && TCUtils::getTicks() - t < 1000)
 	{
 		int res = stream.write(outPacketData, PACKET_HEADER_SIZE + header.length, 100);
 		if (res < 0)
