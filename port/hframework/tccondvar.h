@@ -5,9 +5,10 @@
 
 #include "tcmutex.h"
 
+#include <stdio.h>
 class TCCondVar
 {
-	hFramework::hMutex s, x; // TODO: change to semaphores
+	hFramework::hSemaphore s, x;
 	volatile bool isWaiting;
 
 public:
@@ -25,6 +26,7 @@ public:
 			s.give();
 		x.give();
 	}
+
 	// only one thread at a time can call this
 	bool wait(TCMutex& mutex, int timeout = 0)
 	{
