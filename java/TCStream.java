@@ -1,3 +1,5 @@
+package utils;
+
 import java.util.logging.Logger;
 
 public class TCStream
@@ -35,6 +37,8 @@ public class TCStream
   }
 
   public native void run();
+
+  public native void stop();
 
   public native void beginPacket();
 

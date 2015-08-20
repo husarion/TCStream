@@ -19,7 +19,7 @@ public:
 		this->size = size;
 	}
 
-	bool put(T data, int timeout)
+	bool put(const T& data, int timeout)
 	{
 		mutex.lock();
 		while (queue.size() >= size)
