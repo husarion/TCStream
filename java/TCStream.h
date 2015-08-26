@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_utils_TCStream_run
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint packetSize, jint queueSize);
 
 /*
  * Class:     TCStream

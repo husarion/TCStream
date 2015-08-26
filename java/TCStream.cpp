@@ -130,7 +130,7 @@ void* runThreadFunc(void*)
 	tcs.run();
 	return 0;
 }
-JNIEXPORT void JNICALL Java_utils_TCStream_run(JNIEnv* env, jobject obj)
+JNIEXPORT void JNICALL Java_utils_TCStream_run(JNIEnv* env, jobject obj, jint packetSize, jint queueSize)
 {
 	env->GetJavaVM(&g_vm);
 	g_obj = env->NewGlobalRef(obj);
@@ -154,8 +154,8 @@ JNIEXPORT void JNICALL Java_utils_TCStream_run(JNIEnv* env, jobject obj)
 		std::cout << "Unable to get method2 ref" << std::endl;
 	}
 
-	tcs.allocateBuffers(50);
-	tcs.allocateQueue(1000);
+	tcs.allocateBuffers(packetSize);
+	tcs.allocateQueue(queueSize);
 
 	srand(time(0));
 
