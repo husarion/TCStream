@@ -7,9 +7,9 @@
 
 #ifdef ANDROID_NDK
 #include <android/log.h>
-#define LOG_FUNC(x,...) __android_log_print(2, "tcstream", x , ##__VA_ARGS__)
+#define TCS_LOG_FUNC(x,...) __android_log_print(2, "tcstream", x , ##__VA_ARGS__)
 #else
-#define LOG_FUNC(x,...) fprintf(stderr, x, ##__VA_ARGS__)
+#define TCS_LOG_FUNC(x,...) fprintf(stderr, x, ##__VA_ARGS__)
 #endif
 
 class TCUtils

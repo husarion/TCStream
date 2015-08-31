@@ -13,9 +13,9 @@ uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 #define PACKET_TYPE_EOP  4 // end of packet
 #define PACKET_TYPE_ACK  8
 
-#if defined(LOG_FUNC) && defined(TCSTREAM_DEBUG)
-#define LOG(x,...) LOG_FUNC(x "\r\n", ##__VA_ARGS__)
-#define LOG_INFO(x,...) LOG_FUNC(x, ##__VA_ARGS__)
+#if defined(TCS_LOG_FUNC) && defined(TCSTREAM_DEBUG)
+#define LOG(x,...) TCS_LOG_FUNC(x "\r\n", ##__VA_ARGS__)
+#define LOG_INFO(x,...) TCS_LOG_FUNC(x, ##__VA_ARGS__)
 #else
 #define LOG(x,...)
 #define LOG_INFO(x,...)
@@ -128,6 +128,7 @@ void TCStream::run()
 			LOG("lost packet");
 		}
 	}
+	LOG("tcstream thread ended");
 }
 
 // receiving

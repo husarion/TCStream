@@ -5,7 +5,7 @@
 
 #include <hFramework.h>
 
-#define LOG_FUNC(x,...) sys.log(x, ##__VA_ARGS__)
+#define TCS_LOG_FUNC(x,...) sys.log(x, ##__VA_ARGS__)
 
 class TCUtils
 {
