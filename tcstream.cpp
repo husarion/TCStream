@@ -53,7 +53,7 @@ void TCStream::run()
 	while (!doStop)
 	{
 		char inData[10];
-		int rd = stream.read(inData, sizeof(inData), 20);
+		int rd = stream.read(inData, sizeof(inData), 70);
 		LOG("new data: %d", rd);
 
 		if (rd > 0)
@@ -92,7 +92,7 @@ void TCStream::run()
 				headerData[idx++] = b;
 				if (idx == sizeof(recvHeader))
 				{
-					printHeader("RECEIVED PACKET", recvHeader);
+					LOG("got data");
 					if (recvHeader.length > 0)
 					{
 						idx = 0;
@@ -144,6 +144,7 @@ void TCStream::checkPacket()
 
 	if (origCrc == crc)
 	{
+		printHeader("RECEIVED PACKET", recvHeader);
 		processPacket();
 	}
 	else
