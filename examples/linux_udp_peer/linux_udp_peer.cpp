@@ -98,8 +98,8 @@ void hMain(int argc, char** argv)
 	udpStream.init();
 	TCStream tcs(udpStream);
 
-	tcs.allocateBuffers(50);
-	tcs.allocateQueue(1000);
+	tcs.allocateBuffers(5);
+	tcs.allocateQueue(10);
 
 	std::thread th([&tcs]()
 	{
@@ -111,7 +111,7 @@ void hMain(int argc, char** argv)
 		for (;;)
 		{
 			// printf("tx %d %d rx %d %d \r\n", txpkt, txbytes, rxpkt, rxbytes);
-			tcs.printStats();
+			// tcs.printStats();
 			usleep(1000000);
 		}
 	});
@@ -128,7 +128,9 @@ void hMain(int argc, char** argv)
 
 			char d[300];
 			static int num = 0;
-			int len = sprintf(d, "[ab %7d abc", num++);
+			// int len = sprintf(d, "[ab %7d abc", num++);
+			int len = sprintf(d, "%4d", num++);
+			printf("SEND: %s\r\n", d);
 			// int len = sprintf(d, "%7d", num++);
 			// int len = sprintf(d, "abcdef");
 			len++;
@@ -142,6 +144,7 @@ void hMain(int argc, char** argv)
 
 			// usleep(100000000);
 			// usleep(1000000);
+			usleep(1000000);
 		}
 	}
 	else if (ac == 0)
@@ -154,7 +157,7 @@ void hMain(int argc, char** argv)
 		{
 			// printf("===\r\n");
 			rr = tcs.read(d + total, 1024, 3000);
-			// printf("-------------- main RES: %d\r\n", rr);
+			printf("-------------- main RES: %d\r\n", rr);
 			if (rr == -1)
 			{
 				printf("================ TIMEOUT ===========\r\n");
@@ -172,12 +175,12 @@ void hMain(int argc, char** argv)
 			if (rr == -5)
 			{
 				printf("TOTAL RECEVIED %d %s\r\n", total, d);
+				usleep(3000000);
 			}
 			if (rr >= 0)
 			{
 				total += rr;
 			}
-			usleep(1000);
 		}
 	}
 	else if (ac == 2)

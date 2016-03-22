@@ -6,6 +6,8 @@ find_package(Threads)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -g -Wall")
 
+add_definitions(-DTCSTREAM_DEBUG=1)
+
 include_directories(${CURRENT_DIR}/../kdutils)
 include_directories(${CURRENT_DIR}/../..)
 include_directories(${CURRENT_DIR}/../../port/linux)

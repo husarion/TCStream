@@ -71,7 +71,7 @@ int hMain(int argc, char** argv)
 	srand(time(0));
 	TCStream tcs(serialTTY);
 	
-	tcs.allocateBuffers(50);
+	tcs.allocateBuffers(45);
 	tcs.allocateQueue(1000);
 
 	std::thread th([&tcs]()
@@ -101,7 +101,7 @@ int hMain(int argc, char** argv)
 
 			char d[300];
 			static int num = 0;
-			int len = sprintf(d, "[ab %7d abc", num++);
+			int len = sprintf(d, "[ab %7d TESTDATTESTDATTESTDATTESTDATTESTDATTESTDATTESTDATTESTDATTESTDATAAAAAAAAATESTDATA", num++);
 			// int len = sprintf(d, "%7d", num++);
 			// int len = sprintf(d, "abcdef");
 			len++;
@@ -112,9 +112,11 @@ int hMain(int argc, char** argv)
 
 			if (res == -1)
 				printf("timeout\r\n");
+			else
+				printf("ok\r\n");
 
 			// usleep(100000000);
-			// usleep(1000000);
+			usleep(1000000);
 		}
 	}
 	else if (ac == 0)
@@ -123,9 +125,9 @@ int hMain(int argc, char** argv)
 		int rr;
 		char d[1024];
 		int pos;
-		printf("a0\r\n");
-		usleep(3000000);
-		printf("a\r\n");
+		// printf("a0\r\n");
+		// usleep(3000000);
+		// printf("a\r\n");
 		for (;;)
 		{
 			int len;
@@ -148,7 +150,8 @@ int hMain(int argc, char** argv)
 			}
 			if (rr == -5)
 			{
-				printf("TOTAL RECEVIED %d %s\r\n", total, d);
+				// printf("TOTAL RECEVIED %d %s\r\n", total, d);
+					printf("TOTAL RECEVIED %d\r\n", total);
 			}
 			if (rr >= 0)
 			{
@@ -187,7 +190,8 @@ int hMain(int argc, char** argv)
 				}
 				if (rr == -5)
 				{
-					printf("TOTAL RECEVIED %d %s\r\n", total, d);
+					// printf("TOTAL RECEVIED %d %s\r\n", total, d);
+					printf("TOTAL RECEVIED %d\r\n", total);
 				}
 				if (rr >= 0)
 				{
@@ -288,14 +292,17 @@ int main(int argc, char** argv)
 	// flags = flags | O_NONBLOCK;
 	// fcntl(master, F_SETFL, flags);
 
+	// serialTTY.write_fd = master;
+	// serialTTY.read_fd = master;
 
-	int fd = open("/dev/ttyUSB1", O_RDWR);
+	// int fd = open("/tmp/ttyVIRTSTM", O_RDWR);
+	int fd = open("/dev/ttyUSB0", O_RDWR);
 
 	struct termios tty;
 	memset(&tty, 0, sizeof tty);
 	tcgetattr(fd, &tty);
-	cfsetospeed(&tty, B921600);
-	cfsetispeed(&tty, B921600);
+	cfsetospeed(&tty, B460800);
+	cfsetispeed(&tty, B460800);
 
 	tcsetattr(fd, TCSANOW, &tty);
 

@@ -326,7 +326,7 @@ bool TCStream::processIncomingBytes()
 				// printf("asd\r\n");
 				droppedBytes++;
 				LOG("unable to put all in queue, force other side to resend packet");
-				return false; // in order to make other side to resend packet (not all bytes has been placen in queue)
+				return false; // in order to make other side to resend packet (not all bytes has been placed in queue)
 			}
 		}
 	}

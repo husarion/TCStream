@@ -17,14 +17,12 @@ option(PORT "port")
 include_directories(../../port/hframework)
 include_directories(../../)
 
-if(DEBUG)
-	set_target_properties(tcstream PROPERTIES COMPILE_FLAGS "-g" LINK_FLAGS "-g")
-endif()
-
 if(NOT HFRAMEWORK_PATH)
 	set(HFRAMEWORK_PATH "${CURRENT_DIR}/../hFramework")
 endif()
 
 include(${HFRAMEWORK_PATH}/hFramework.cmake)
+
+# add_definitions(-DTCSTREAM_DEBUG)
 
 add_hexecutable(test main.cpp ../../tcstream.cpp)
