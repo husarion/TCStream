@@ -6,7 +6,7 @@
 class TCMutex
 {
 public:
-	hFramework::hMutex mutex;
+	hMutex mutex;
 	
 	void lock()
 	{

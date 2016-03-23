@@ -7,7 +7,7 @@ template<typename T>
 class TCQueue
 {
 private:
-	hFramework::hQueue<T> queue;
+	hQueue<T> queue;
 public:
 	void init(int size)
 	{

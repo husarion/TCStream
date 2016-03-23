@@ -8,7 +8,7 @@
 #include <stdio.h>
 class TCCondVar
 {
-	hFramework::hSemaphore s, x;
+	hSemaphore s, x;
 	volatile bool isWaiting;
 
 public:
