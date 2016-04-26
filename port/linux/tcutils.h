@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <cstdlib>
 
 #ifdef ANDROID_NDK
 #include <android/log.h>

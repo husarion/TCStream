@@ -31,6 +31,12 @@ struct TQueueItem
 
 #define PACKET_HEADER_SIZE (4 + sizeof(TPacketHeader))
 
+#define ERROR_TIMEOUT      -1
+#define ERROR_NEWSESSION   -2
+#define ERROR_API          -3
+#define RESULT_NEWPACKET   -4
+#define RESULT_ENDOFPACKET -5
+
 class ITCDeviceStream
 {
 public:

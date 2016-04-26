@@ -21,12 +21,6 @@ uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 #define LOG_INFO(x,...)
 #endif
 
-#define ERROR_TIMEOUT      -1
-#define ERROR_NEWSESSION   -2
-#define ERROR_API          -3
-#define RESULT_NEWPACKET   -4
-#define RESULT_ENDOFPACKET -5
-
 uint16_t crc16_update(uint16_t crc, const void* data, int len);
 
 void printHeader(const char* intro, const TPacketHeader& header)
@@ -46,7 +40,7 @@ void printHeader(const char* intro, const TPacketHeader& header)
 void TCStream::run()
 {
 	int state = 0;
-	uint8_t magicQueue[4];
+	uint8_t magicQueue[4] = {0};
 	uint32_t startTime;
 	uint16_t idx;
 	doStop = false;
@@ -84,7 +78,7 @@ void TCStream::run()
 				{
 					state = 1;
 					startTime = TCUtils::getTicks();
-					LOG("magic match start %d", startTime);
+					LOG("magic match start %u", startTime);
 					idx = 0;
 				}
 				break;
@@ -201,7 +195,7 @@ void TCStream::processPacket()
 
 		if (recvHeader.packetId == lastReceivedPacketId)
 		{
-			// sender didn't receive ACK and retransmitted packet
+			// sender didn't receive ACK and has retransmitted packet
 			if (recvHeader.byteIdx < lastReceivedPacketByteIdx)
 			{
 				LOG("repeated DATA, dropping, new packet (%d:%d) last packet (%d:%d)",
@@ -233,7 +227,7 @@ void TCStream::processPacket()
 		else
 		{
 			// packet with different id was received but SOP was not present, as we cannot do anything interesting
-			// in this situation, it is simple dropped
+			// in this situation, so it is simple dropped
 			LOG("unknown %d:%d\r\n", recvHeader.packetId, recvHeader.byteIdx);
 		}
 	}
@@ -496,6 +490,8 @@ int TCStream::read(void* data, int length, int timeout)
 {
 	assert(timeout >= 0);
 	LOG("read(%d)", length);
+	if (length <= 0)
+		return 0;
 	readMutex.lock();
 	uint8_t *_data = (uint8_t*)data;
 	for (int i = 0; i < length; i++)
