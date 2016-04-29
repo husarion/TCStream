@@ -42,7 +42,7 @@ void TCStream::run()
 	int state = 0;
 	uint8_t magicQueue[4] = {0};
 	uint32_t startTime;
-	uint16_t idx;
+	uint16_t idx = 0;
 	doStop = false;
 	while (!doStop)
 	{
