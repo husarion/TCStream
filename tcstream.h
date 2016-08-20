@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 
-#include "tcqueue.h"
-#include "tccondvar.h"
-#include "tcutils.h"
+#include "crosslib.h"
+#include "nativelib.h"
+
+using namespace crosslib;
+using namespace nativelib;
 
 #pragma pack(1)
 struct TPacketHeader
@@ -48,15 +50,15 @@ class TCStream
 {
 public:
 	ITCDeviceStream& stream;
-	TCMutex readMutex;
-	TCMutex writeMutex, writeTransferMutex;
-	TCCondVar writeCondVar;
+	Mutex readMutex;
+	Mutex writeMutex, writeTransferMutex;
+	CondVar writeCondVar;
 
 	TCStream(ITCDeviceStream& stream)
 		: stream(stream)
 	{
 		lastReceivedPacketId = 0;
-		sendHeader.packetId = TCUtils::getRand();
+		sendHeader.packetId = System::getRand();
 
 		droppedStartPacketMakers = 0;
 		droppedEndPacketMarkers = 0;
@@ -69,23 +71,22 @@ public:
 		recvBytes = recvPayloadBytes = recvPackets = 0;
 	}
 
-	void allocateQueue(int recvQueueSize)
+	/*void allocateQueue(int recvQueueSize)
 	{
-		recvQueue = new TCQueue<TQueueItem>();
-		recvQueue->init(recvQueueSize);
-	}
+		recvQueue = new Queue<TQueueItem>(recvQueueSize);
+	}*/
 
-	void setQueue(TCQueue<TQueueItem>& queue)
+	void setQueue(Queue<TQueueItem>& queue)
 	{
 		recvQueue = &queue;
 	}
 
-	void allocateBuffers(int packetSize)
+	/*void allocateBuffers(int packetSize)
 	{
 		this->packetSize = packetSize;
-		inPacketData = (uint8_t*)TCUtils::malloc(packetSize + PACKET_HEADER_SIZE);
-		outPacketData = (uint8_t*)TCUtils::malloc(packetSize + PACKET_HEADER_SIZE);
-	}
+		inPacketData = (uint8_t*)System::malloc(packetSize + PACKET_HEADER_SIZE);
+		outPacketData = (uint8_t*)System::malloc(packetSize + PACKET_HEADER_SIZE);
+	}*/
 
 	void setBuffers(int packetSize, uint8_t* inPacketData, uint8_t* outPacketData)
 	{
@@ -112,7 +113,7 @@ private:
 	// receiving
 	uint8_t* inPacketData;
 	TPacketHeader recvHeader;
-	TCQueue<TQueueItem>* recvQueue;
+	Queue<TQueueItem>* recvQueue;
 	uint16_t lastReceivedPacketId;
 	uint16_t lastReceivedPacketByteIdx;
 	int lastReceivedByteNum;

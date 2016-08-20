@@ -4,7 +4,6 @@
 #include <cstring>
 
 #include "tcstream.h"
-#include "tcutils.h"
 
 uint8_t magic[4] = { 0xaa, 0xbb, 0xcc, 0xdd };
 
@@ -41,7 +40,7 @@ void TCStream::run()
 {
 	int state = 0;
 	uint8_t magicQueue[4] = {0};
-	uint32_t startTime;
+	uint64_t startTime;
 	uint16_t idx = 0;
 	doStop = false;
 	while (!doStop)
@@ -77,7 +76,7 @@ void TCStream::run()
 				if (magicMatch)
 				{
 					state = 1;
-					startTime = TCUtils::getTicks();
+					startTime = OS::getTime();
 					TCLOG("magic match start %u", startTime);
 					idx = 0;
 				}
@@ -116,7 +115,7 @@ void TCStream::run()
 			}
 		}
 
-		if (state != 0 && TCUtils::getTicks() - startTime >= 150)
+		if (state != 0 && OS::getTime() - startTime >= 150)
 		{
 			state = 0;
 			TCLOG("lost packet");
@@ -158,7 +157,7 @@ void TCStream::processPacket()
 		ackedPacketId = recvHeader.packetId;
 		ackedPacketByteIdx = recvHeader.byteIdx;
 		writeMutex.unlock();
-		writeCondVar.notify_one();
+		writeCondVar.notifyOne();
 		TCLOG("ack proceed");
 		return;
 	}
@@ -444,9 +443,8 @@ int TCStream::sendDataPacket(TPacketHeader& header)
 	memcpy(outPacketData, magic, sizeof(magic));
 	memcpy(outPacketData + sizeof(magic), &header, sizeof(header));
 
-	bool sendok = false;
-	uint32_t t = TCUtils::getTicks();
-	while (!sendok && TCUtils::getTicks() - t < 1000)
+	uint64_t t = OS::getTime();
+	while (OS::getTime() - t < 1000)
 	{
 		int res = stream.write(outPacketData, PACKET_HEADER_SIZE + header.length, 100);
 		if (res < 0)
