@@ -2,12 +2,8 @@
 #define __TCSTREAM_H__
 
 #include <stdint.h>
-
-#include "crosslib.h"
-#include "nativelib.h"
-
-using namespace crosslib;
-using namespace nativelib;
+#include <hFramework.h>
+using namespace hFramework;
 
 #pragma pack(1)
 struct TPacketHeader
@@ -50,15 +46,15 @@ class TCStream
 {
 public:
 	ITCDeviceStream& stream;
-	Mutex readMutex;
-	Mutex writeMutex, writeTransferMutex;
-	CondVar writeCondVar;
+	hMutex readMutex;
+	hMutex writeMutex, writeTransferMutex;
+	hCondVar writeCondVar;
 
 	TCStream(ITCDeviceStream& stream)
 		: stream(stream)
 	{
 		lastReceivedPacketId = 0;
-		sendHeader.packetId = System::getRand();
+		sendHeader.packetId = sys.getRandNr();
 
 		droppedStartPacketMakers = 0;
 		droppedEndPacketMarkers = 0;
@@ -76,7 +72,7 @@ public:
 		recvQueue = new Queue<TQueueItem>(recvQueueSize);
 	}*/
 
-	void setQueue(Queue<TQueueItem>& queue)
+	void setQueue(hQueue<TQueueItem>& queue)
 	{
 		recvQueue = &queue;
 	}
@@ -113,7 +109,7 @@ private:
 	// receiving
 	uint8_t* inPacketData;
 	TPacketHeader recvHeader;
-	Queue<TQueueItem>* recvQueue;
+	hQueue<TQueueItem>* recvQueue;
 	uint16_t lastReceivedPacketId;
 	uint16_t lastReceivedPacketByteIdx;
 	int lastReceivedByteNum;

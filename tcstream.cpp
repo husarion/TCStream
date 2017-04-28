@@ -76,7 +76,7 @@ void TCStream::run()
 				if (magicMatch)
 				{
 					state = 1;
-					startTime = OS::getTimeMS();
+					startTime = sys.getRefTime();
 					TCLOG("magic match start %u", startTime);
 					idx = 0;
 				}
@@ -115,7 +115,7 @@ void TCStream::run()
 			}
 		}
 
-		if (state != 0 && OS::getTimeMS() - startTime >= 150)
+		if (state != 0 && sys.getRefTime() - startTime >= 150)
 		{
 			state = 0;
 			TCLOG("lost packet");
@@ -433,6 +433,7 @@ int TCStream::sendPacket(TPacketHeader& header)
 }
 int TCStream::sendDataPacket(TPacketHeader& header)
 {
+
 	header.crc = 0;
 	uint16_t crc = crc16_update(0, &header, sizeof(header));
 	crc = crc16_update(crc, outPacketData + PACKET_HEADER_SIZE, header.length);
@@ -443,8 +444,8 @@ int TCStream::sendDataPacket(TPacketHeader& header)
 	memcpy(outPacketData, magic, sizeof(magic));
 	memcpy(outPacketData + sizeof(magic), &header, sizeof(header));
 
-	uint64_t t = OS::getTimeMS();
-	while (OS::getTimeMS() - t < 1000)
+	uint64_t t = sys.getRefTime();
+	while (sys.getRefTime() - t < 1000)
 	{
 		int res = stream.write(outPacketData, PACKET_HEADER_SIZE + header.length, 100);
 		if (res < 0)
